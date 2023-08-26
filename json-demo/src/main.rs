@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 #[derive(Serialize, Deserialize)]
 struct Person {
@@ -25,5 +26,14 @@ fn main() {
 
     let s2 = serde_json::to_string(&p).unwrap();
     println!("#3 {}", s2);
-}
 
+    let j3 = json!({
+        "name": "张三丰",
+        "age": 18,
+        "school": "武当山"
+    } );
+    println!(
+        "#4 name={}, age={}, school={}",
+        j3["name"], j3["age"], j3["school"]
+    );
+}
