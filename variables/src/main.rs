@@ -1,3 +1,5 @@
+mod user;
+
 fn a() {
     let s: &str = "hello, world";
     println!("a() s={}", s);
@@ -73,21 +75,6 @@ fn _match(i: i32) {
         _ => (),
     }
 }
-struct User {
-    active: bool,
-    username: String,
-    email: String,
-    sign_in_count: u64,
-}
-
-impl User {
-    fn string(&self) -> String {
-        format!(
-            "{} {} {} {}",
-            self.active, self.username, self.email, self.sign_in_count
-        )
-    }
-}
 
 enum Number {
     Zero,
@@ -107,7 +94,7 @@ fn main() {
     array();
     _loop();
     _match(3);
-    let user = User {
+    let user = user::User {
         active: true,
         username: String::from("张三丰"),
         email: String::from("abc@good.com"),
