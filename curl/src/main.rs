@@ -1,20 +1,21 @@
+use clap::Parser;
 use std::{
-    env,
     io::{self, BufReader, Read, Write},
     net::TcpStream,
-    process::exit,
     str,
 };
 
-fn main() -> io::Result<()> {
-    let args: Vec<String> = env::args().collect();
-    if args.len() == 1 {
-        println!("invalid argument.");
-        exit(1);
-    }
+/// curl by rust
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Arguments {
+    /// target to connect
+    target: String,
+}
 
-    let addr = &args[1];
-    let mut stream = TcpStream::connect(addr)?;
+fn main() -> io::Result<()> {
+    let args = Arguments::parse();
+    let mut stream = TcpStream::connect(args.target)?;
 
     stream.set_nodelay(true).expect("set nodelay failed");
 
@@ -27,6 +28,6 @@ fn main() -> io::Result<()> {
     reader
         .read_to_end(&mut buffer)
         .expect("read from stream failed");
-    println!("read from server: {}", str::from_utf8(&buffer).unwrap());
+    println!("{}", str::from_utf8(&buffer).unwrap());
     Ok(())
 }
