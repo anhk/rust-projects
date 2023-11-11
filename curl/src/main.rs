@@ -1,11 +1,20 @@
 use std::{
+    env,
     io::{self, BufReader, Read, Write},
     net::TcpStream,
+    process::exit,
     str,
 };
 
 fn main() -> io::Result<()> {
-    let mut stream = TcpStream::connect("192.168.64.52:32351")?;
+    let args: Vec<String> = env::args().collect();
+    if args.len() == 1 {
+        println!("invalid argument.");
+        exit(1);
+    }
+
+    let addr = &args[1];
+    let mut stream = TcpStream::connect(addr)?;
 
     stream.set_nodelay(true).expect("set nodelay failed");
 
