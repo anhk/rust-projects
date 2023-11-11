@@ -15,14 +15,26 @@ struct Arguments {
 
 fn main() -> io::Result<()> {
     let args = Arguments::parse();
-    let mut stream = TcpStream::connect(&args.target)?;
 
-    stream.set_nodelay(true).expect("set nodelay failed");
+    let mut host: &str = &args.target;
+    let mut path: &str = "";
+
+    match args.target.split_once('/') {
+        Some((key, value)) => {
+            (host, path) = (key, value);
+        }
+        None => {}
+    }
 
     let input = format!(
-        "GET / HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n",
-        &args.target
+        "GET /{} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n",
+        path, host,
     );
+
+    println!("{}",input);
+
+    let mut stream = TcpStream::connect(&host).expect("connect failed");
+    stream.set_nodelay(true).expect("set nodelay failed");
     stream.write_all(input.as_bytes()).expect("write failed");
 
     let mut reader = BufReader::new(&stream);
