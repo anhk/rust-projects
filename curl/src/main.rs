@@ -5,6 +5,9 @@ use std::{
     str,
 };
 
+mod url;
+use url::Url;
+
 /// curl by rust
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -19,6 +22,9 @@ fn main() -> io::Result<()> {
     let mut host: &str = &args.target;
     let mut path: &str = "";
 
+    let url: Url = Url::new(&args.target);
+    println!("{}{}:{}", url.protocol, url.domain, url.port);
+
     match args.target.split_once('/') {
         Some((key, value)) => {
             (host, path) = (key, value);
@@ -30,6 +36,8 @@ fn main() -> io::Result<()> {
         "GET /{} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n",
         path, host,
     );
+
+    println!("h {}:", host);
 
     println!("{}",input);
 
