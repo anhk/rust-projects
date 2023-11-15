@@ -6,11 +6,11 @@ fn handle_client(mut stream: TcpStream) {
     let mut data = [0 as u8, 255];
     while match stream.read(&mut data) {
         Ok(size) => {
-            stream.write(&data[0..size]).unwrap();
+            stream.write(&data[0..size]).unwrap_or_default();
             true
         }
         Err(_) => {
-            stream.shutdown(Shutdown::Both).unwrap();
+            stream.shutdown(Shutdown::Both).unwrap_or_default();
             false
         }
     } {}
