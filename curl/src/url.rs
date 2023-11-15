@@ -1,3 +1,4 @@
+
 pub struct Url {
     pub domain: String,
     pub port: u16,
@@ -14,20 +15,31 @@ impl Url {
             protocol: String::from(""),
         };
 
-        if url.starts_with("http://") {
+        let mut url_n = url.as_str();
+
+        if url_n.starts_with("http://") {
             u.protocol = String::from("http://");
-        //   url=  String::from( url.strip_prefix("http://").unwrap_or(&url ));
+            url_n = url.strip_prefix("http://").unwrap();
         } else if url.starts_with("https://") {
-            u.protocol = String::from("https://")
+            u.protocol = String::from("https://");
+            url_n = url.strip_prefix("http://").unwrap();
         }
 
-        match url.split_once('/') {
+        match url_n.split_once('/') {
             Some((key, value)) => {
-                u.domain = String::from(key);
+                url_n = key;
                 u.path = String::from(value);
             }
+            None => {}
+        }
+
+        match url_n.split_once(':') {
+            Some((key, value)) => {
+                u.domain = String::from(key);
+                u.port = value.parse().expect("not number");
+            }
             None => {
-                u.domain = String::from(url);
+                u.domain = String::from(url_n);
             }
         }
 
