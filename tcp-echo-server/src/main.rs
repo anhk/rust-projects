@@ -2,6 +2,15 @@ use std::io::{Read, Write};
 use std::net::{Shutdown, TcpListener, TcpStream};
 use std::thread;
 
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long, default_value_t = 33333)]
+    port: u16,
+}
+
 fn handle_client(mut stream: TcpStream) {
     let mut data = [0 as u8, 255];
     while match stream.read(&mut data) {
@@ -17,8 +26,9 @@ fn handle_client(mut stream: TcpStream) {
 }
 
 fn main() {
-    let addr = "0.0.0.0:33333";
-    let listener = TcpListener::bind(addr).unwrap();
+    let args = Args::parse();
+    let addr = format!(":::{}",args.port);
+    let listener = TcpListener::bind(&addr).unwrap();
     println!("server listen on {}", addr);
 
     for stream in listener.incoming() {
