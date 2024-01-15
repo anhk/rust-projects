@@ -22,6 +22,7 @@ struct Tun {
     if_name: String,
 }
 
+#[cfg(target_os = "linux")]
 fn create(name: u8) -> Result<Tun, io::Error> {
     let path = path::Path::new("/dev/net/tun");
     let file = fs::OpenOptions::new()
@@ -52,6 +53,11 @@ fn create(name: u8) -> Result<Tun, io::Error> {
         if_name: String::from_utf8(req.ifr_name[..size].to_vec()).unwrap(),
     };
     Ok(tun)
+}
+
+#[cfg(target_os = "macos")]
+fn create(name: u8) -> Result<Tun, io::Error> {
+    Err(io::Error::last_os_error())
 }
 
 fn main() {
