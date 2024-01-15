@@ -61,10 +61,7 @@ FILES_EXEC_BUILD = $(addprefix $(DIR_BUILD_BIN),$(EXEC))
 # Other targets
 #------------------------------------------------------------------------------
 
-default: mkdir $(FILES_EXEC_BUILD)
-
-mkdir:
-	mkdir -p ${DIR_BUILD}
+default:  $(FILES_EXEC_BUILD)
 
 -include .depend
 
