@@ -60,6 +60,8 @@ fn create(name: u8) -> Result<Tun, io::Error> {
     Err(io::Error::last_os_error())
 }
 
+// Reference: git@github.com:changlan/kytan.git
+
 fn main() {
     let mut tun = create(10).expect("---");
     println!("ifname: {}", tun.if_name);
