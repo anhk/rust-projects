@@ -1,6 +1,11 @@
-use std::{fs, io, os::fd::AsRawFd, path};
+use std::{
+    fs,
+    io::{self, Read},
+    os::fd::AsRawFd,
+    path,
+};
 
-use libc::{ioctl, sleep};
+use libc::ioctl;
 
 const IFNAMSIZ: usize = 16;
 const IFF_TUN: i16 = 0x0001;
@@ -50,7 +55,18 @@ fn create(name: u8) -> Result<Tun, io::Error> {
 }
 
 fn main() {
-    let _tun = create(10).expect("---");
-    unsafe { sleep(100) };
-    println!("Hello, world!");
+    let mut tun = create(10).expect("---");
+    println!("ifname: {}", tun.if_name);
+
+    let mut data = [0 as u8, 255];
+    while match tun.handle.read(&mut data) {
+        Ok(size) => {
+            println!("size: {}", size);
+            true
+        }
+        Err(_) => false,
+    } {}
+
+    // unsafe { sleep(100) };
+    // println!("Hello, world!");
 }
