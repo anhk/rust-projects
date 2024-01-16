@@ -10,22 +10,29 @@ fn main() {
 
     let mut data = [0 as u8; 2048]; // mtu=1500 by default
 
-    while match tun.handle.read(&mut data) {
+    'l: while match tun.handle.read(&mut data) {
         Ok(size) => {
             println!("size: {}", size);
-            // if size < 20 {
-            //     return;
-            // }
-            // let mut srcip = [0 as u8; 4];
-            // let mut dstip = [0 as u8; 4];
-            // srcip.copy_from_slice(&data[12..16]);
-            // dstip.copy_from_slice(&data[16..20]);
-            // data[12..16].copy_from_slice(&dstip);
-            // data[16..20].copy_from_slice(&srcip);
-            // match tun.handle.write(&data[0..20]) { // EBADF 9 Bad file descriptor
-            //     Ok(size) => println!("write size: {}", size),
-            //     Err(err) => println!("write error: {}", err),
-            // }
+            if data[0] != 0x45 || data[9] != 1 {
+                /* not ipv4 or icmp*/
+                continue 'l;
+            }
+            println!("data: {:x?}", &data[..size]);
+            let mut srcip = [0 as u8; 4];
+            let mut dstip = [0 as u8; 4];
+            dstip.copy_from_slice(&data[12..16]);
+            srcip.copy_from_slice(&data[16..20]);
+
+            data[12..16].copy_from_slice(&srcip);
+            data[16..20].copy_from_slice(&dstip);
+
+            data[20] = 0; // icmp echo
+
+            // *((unsigned short *)&buffer[22]) += 8; // checksum
+
+            println!("data: {:x?}", &data[..size]);
+
+            // tun.handle.write(&data[0..20]).unwrap();
             true
         }
         Err(_) => false,

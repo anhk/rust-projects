@@ -66,6 +66,12 @@ int main(int argc, char **argv)
             exit(1);
         }
 
+        // int i;
+        // for (i = 0; i < nread; i++) {
+        //     printf(" %x", buffer[i]);
+        // }
+        // printf("\n");
+
         printf("Read %d bytes from tun/tap device\n", nread);
 
         // 简单对收到的包调换一下顺序
@@ -73,8 +79,9 @@ int main(int argc, char **argv)
         memcpy(&buffer[12], &buffer[16], 4);
         memcpy(&buffer[16], ip, 4);
 
-        buffer[20] = 0;
-        *((unsigned short *)&buffer[22]) += 8;
+        buffer[20] = 0; // icmp echo
+
+        *((unsigned short *)&buffer[22]) += 8; // checksum
 
         // 发包
         nread = write(tun_fd, buffer, nread);
