@@ -17,22 +17,24 @@ fn main() {
                 /* not ipv4 or icmp*/
                 continue 'l;
             }
-            println!("data: {:x?}", &data[..size]);
             let mut srcip = [0 as u8; 4];
             let mut dstip = [0 as u8; 4];
             dstip.copy_from_slice(&data[12..16]);
             srcip.copy_from_slice(&data[16..20]);
 
+            // swap src and dst ip address
             data[12..16].copy_from_slice(&srcip);
             data[16..20].copy_from_slice(&dstip);
 
             data[20] = 0; // icmp echo
 
-            // *((unsigned short *)&buffer[22]) += 8; // checksum
+            let mut csum = ((data[22] as u16) << 8) | data[23] as u16;
+            csum += 8;
 
-            println!("data: {:x?}", &data[..size]);
+            data[22] = (csum >> 8) as u8;
+            data[23] = (csum & 0xF) as u8;
 
-            // tun.handle.write(&data[0..20]).unwrap();
+            tun.handle.write(&data[0..size]).unwrap();
             true
         }
         Err(_) => false,

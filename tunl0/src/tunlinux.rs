@@ -2,7 +2,6 @@ use libc::*;
 use std::fs;
 use std::io;
 use std::os::fd::AsRawFd;
-
 pub struct Tun {
     pub handle: fs::File,
     pub ifname: String,
@@ -24,7 +23,13 @@ pub struct IoctlFlagsData {
 
 #[cfg(target_os = "linux")]
 pub fn alloc_tun() -> Result<Tun, io::Error> {
-    let file = fs::File::open("/dev/net/tun").expect("");
+    use std::fs::OpenOptions;
+
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open("/dev/net/tun")
+        .expect("");
     let mut req = IoctlFlagsData {
         ifr_name: [0u8; IFNAMSIZ],
         ifr_flags: IFF_TUN | IFF_NO_PI,
