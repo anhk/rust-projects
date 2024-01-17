@@ -1,4 +1,4 @@
-use std::thread::{self, JoinHandle};
+use std::thread::{self};
 
 fn main() {
     let mut handles = Vec::new();
