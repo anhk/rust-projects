@@ -19,8 +19,12 @@ fn main() {
     'l: while match tun.handle.read(&mut data) {
         Ok(size) => {
             println!("size: {}", size);
+            // #[cfg(target_os = "macos")]
+            // let data = data[4..].as_mut();
+
             if data[0] != 0x45 || data[9] != 1 {
                 /* not ipv4 or icmp*/
+                println!("data: {:x?}", data[..size].bytes());
                 continue 'l;
             }
             let mut srcip = [0 as u8; 4];

@@ -5,7 +5,8 @@ use std::fs;
 #[cfg(target_os = "macos")]
 use std::io;
 #[cfg(target_os = "macos")]
-use std::os::fd::{AsRawFd, FromRawFd};
+use std::os::fd::FromRawFd;
+use std::process;
 
 #[cfg(target_os = "macos")]
 const UTUN_CONTROL_NAME: &'static str = "com.apple.net.utun_control";
@@ -33,24 +34,23 @@ pub fn alloc_tun() -> Result<Tun, io::Error> {
 
     let fd = unsafe { socket(PF_SYSTEM, SOCK_DGRAM, SYSPROTO_CONTROL) };
     if fd < 0 {
+        println!("error on {}:{}", file!(), line!());
         return Err(io::Error::last_os_error());
     }
 
-    let handle = unsafe { fs::File::from_raw_fd(fd) };
-
+    let mut ctl_name = [0u8; 96];
+    ctl_name[..UTUN_CONTROL_NAME.len()].copy_from_slice(UTUN_CONTROL_NAME.as_bytes());
     let mut info = CtlInfo {
         ctl_id: 0,
-        ctl_name: {
-            let mut buffer = [0u8; 96];
-            buffer[..UTUN_CONTROL_NAME.len()].copy_from_slice(UTUN_CONTROL_NAME.as_bytes());
-            buffer
-        },
+        ctl_name: ctl_name,
     };
 
-    let res = unsafe { ioctl(handle.as_raw_fd(), CTLIOCGINFO, &mut info) };
+    let res = unsafe { ioctl(fd, CTLIOCGINFO, &mut info) };
     if res != 0 {
+        println!("error on {}:{}", file!(), line!());
         return Err(io::Error::last_os_error());
     }
+
     let addr = sockaddr_ctl {
         sc_id: info.ctl_id,
         sc_len: mem::size_of::<sockaddr_ctl>() as u8,
@@ -62,16 +62,17 @@ pub fn alloc_tun() -> Result<Tun, io::Error> {
 
     // If connect() is successful, a tun%d device will be created, where "%d"
     // is our sc_unit-1
+    let addr_ptr = &addr as *const sockaddr_ctl;
     let res = unsafe {
-        let addr_ptr = &addr as *const sockaddr_ctl;
         connect(
-            handle.as_raw_fd(),
+            fd,
             addr_ptr as *const sockaddr,
             mem::size_of_val(&addr) as socklen_t,
         )
     };
 
     if res != 0 {
+        println!("error on {}:{}", file!(), line!());
         return Err(io::Error::last_os_error());
     }
 
@@ -79,7 +80,7 @@ pub fn alloc_tun() -> Result<Tun, io::Error> {
     let mut name_length: socklen_t = 64;
     let res = unsafe {
         getsockopt(
-            handle.as_raw_fd(),
+            fd,
             SYSPROTO_CONTROL,
             UTUN_OPT_IFNAME,
             &mut name_buf as *mut _ as *mut c_void,
@@ -87,25 +88,56 @@ pub fn alloc_tun() -> Result<Tun, io::Error> {
         )
     };
     if res != 0 {
+        println!("error on {}:{}", file!(), line!());
         return Err(io::Error::last_os_error());
     }
 
-    let res = unsafe { fcntl(handle.as_raw_fd(), F_SETFL, O_NONBLOCK) };
-    if res == -1 {
-        return Err(io::Error::last_os_error());
-    }
+    // if unsafe { fcntl(fd, F_SETFL, O_NONBLOCK) } == -1 {
+    //     println!("error on {}:{}", file!(), line!());
+    //     return Err(io::Error::last_os_error());
+    // }
 
-    let res = unsafe { fcntl(handle.as_raw_fd(), F_SETFD, FD_CLOEXEC) };
-    if res == -1 {
+    if unsafe { fcntl(fd, F_SETFD, FD_CLOEXEC) } == -1 {
+        println!("error on {}:{}", file!(), line!());
         return Err(io::Error::last_os_error());
     }
 
     let tun = Tun {
-        handle: handle,
+        handle: unsafe { fs::File::from_raw_fd(fd) },
         ifname: {
             let len = name_buf.iter().position(|&r| r == 0).unwrap();
             String::from_utf8(name_buf[..len].to_vec()).unwrap()
         },
     };
+
+    tun.up();
+    // let s = unsafe {
+    //     let mut buffer = [0u8; 4096];
+    //     read(fd, buffer.as_mut_ptr() as *mut c_void, 4096)
+    // };
+    // println!("read size: {}", s);
     Ok(tun)
+}
+
+impl Tun {
+    #[cfg(target_os = "macos")]
+    pub fn up(&self) {
+        let status = process::Command::new("ifconfig")
+            .arg(self.ifname.clone())
+            .arg("10.10.10.253")
+            .arg("10.10.10.1")
+            .arg("up")
+            .status()
+            .unwrap();
+        assert!(status.success());
+
+        let status = process::Command::new("ifconfig")
+            .arg(self.ifname.clone())
+            .arg("mtu")
+            .arg("1500")
+            .arg("up")
+            .status()
+            .unwrap();
+        assert!(status.success());
+    }
 }
