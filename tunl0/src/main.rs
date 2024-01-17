@@ -1,11 +1,17 @@
 mod tunlinux;
+mod tunmacos;
 
 // Reference: git@github.com:changlan/kytan.git
 use std::io::{Read, Write};
 
 fn main() {
     // let mut tun = create(10).expect("---");
+
+    #[cfg(target_os = "linux")]
     let mut tun = tunlinux::alloc_tun().expect("");
+    #[cfg(target_os = "macos")]
+    let mut tun = tunmacos::alloc_tun().expect("");
+
     println!("ifname: {}", tun.ifname);
 
     let mut data = [0 as u8; 2048]; // mtu=1500 by default
@@ -37,7 +43,10 @@ fn main() {
             tun.handle.write(&data[0..size]).unwrap();
             true
         }
-        Err(_) => false,
+        Err(err) => {
+            println!("error: {}", err);
+            false
+        }
     } {}
 
     // unsafe { sleep(100) };

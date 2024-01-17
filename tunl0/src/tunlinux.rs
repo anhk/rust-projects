@@ -1,7 +1,13 @@
+#[cfg(target_os = "linux")]
 use libc::*;
+#[cfg(target_os = "linux")]
 use std::fs;
+#[cfg(target_os = "linux")]
 use std::io;
+#[cfg(target_os = "linux")]
 use std::os::fd::AsRawFd;
+
+#[cfg(target_os = "linux")]
 pub struct Tun {
     pub handle: fs::File,
     pub ifname: String,
@@ -16,6 +22,7 @@ const IFF_NO_PI: i16 = 0x1000;
 #[cfg(target_os = "linux")]
 const TUNSETIFF: u64 = 0x400454ca; // TODO: use _IOW('T', 202, int)
 
+#[cfg(target_os = "linux")]
 pub struct IoctlFlagsData {
     pub ifr_name: [u8; IFNAMSIZ],
     pub ifr_flags: i16,
