@@ -4,9 +4,11 @@ use libc::*;
 use std::fs;
 #[cfg(target_os = "macos")]
 use std::io;
+#[cfg(target_os = "macos")]
 use std::io::{Read, Write};
 #[cfg(target_os = "macos")]
 use std::os::fd::FromRawFd;
+#[cfg(target_os = "macos")]
 use std::process;
 
 #[cfg(target_os = "macos")]
@@ -120,8 +122,8 @@ pub fn alloc_tun() -> Result<Tun, io::Error> {
     Ok(tun)
 }
 
+#[cfg(target_os = "macos")]
 impl Tun {
-    #[cfg(target_os = "macos")]
     pub fn up(&self) {
         let status = process::Command::new("ifconfig")
             .arg(self.ifname.clone())
@@ -143,6 +145,7 @@ impl Tun {
     }
 }
 
+#[cfg(target_os = "macos")]
 impl Read for Tun {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
         let mut data = [0u8; 2048];
@@ -156,6 +159,7 @@ impl Read for Tun {
     }
 }
 
+#[cfg(target_os = "macos")]
 impl Write for Tun {
     fn write(&mut self, buf: &[u8]) -> Result<usize, std::io::Error> {
         let mut data: Vec<u8> = vec![0, 0, 0, 0];

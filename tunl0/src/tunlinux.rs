@@ -62,6 +62,7 @@ impl Read for Tun {
         self.handle.read(buf)
     }
 }
+
 #[cfg(target_os = "linux")]
 impl Write for Tun {
     fn write(&mut self, buf: &[u8]) -> Result<usize, std::io::Error> {
