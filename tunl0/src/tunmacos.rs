@@ -1,6 +1,10 @@
+#[cfg(target_os = "macos")]
 use libc::*;
+#[cfg(target_os = "macos")]
 use std::fs;
+#[cfg(target_os = "macos")]
 use std::io;
+#[cfg(target_os = "macos")]
 use std::os::fd::{AsRawFd, FromRawFd};
 
 #[cfg(target_os = "macos")]
