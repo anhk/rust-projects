@@ -4,6 +4,7 @@ use libc::*;
 use std::fs;
 #[cfg(target_os = "macos")]
 use std::io;
+use std::io::{Read, Write};
 #[cfg(target_os = "macos")]
 use std::os::fd::FromRawFd;
 use std::process;
@@ -124,7 +125,7 @@ impl Tun {
     pub fn up(&self) {
         let status = process::Command::new("ifconfig")
             .arg(self.ifname.clone())
-            .arg("10.10.10.253")
+            .arg("10.10.10.253/24")
             .arg("10.10.10.1")
             .arg("up")
             .status()
@@ -139,5 +140,33 @@ impl Tun {
             .status()
             .unwrap();
         assert!(status.success());
+    }
+}
+
+impl Read for Tun {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
+        let mut data = [0u8; 2048];
+        match self.handle.read(&mut data) {
+            Ok(size) => {
+                buf[..size - 4].clone_from_slice(&data[4..size]);
+                Ok(if size > 4 { size - 4 } else { 0 })
+            }
+            Err(e) => Err(e),
+        }
+    }
+}
+
+impl Write for Tun {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, std::io::Error> {
+        let mut data: Vec<u8> = vec![0, 0, 0, 0];
+        data[3] = if (buf[0] & 0xf) == 6 { 10 } else { 2 };
+        data.write_all(buf).unwrap();
+        match self.handle.write(&data) {
+            Ok(size) => Ok(if size > 4 { size - 4 } else { 0 }),
+            Err(e) => Err(e),
+        }
+    }
+    fn flush(&mut self) -> Result<(), std::io::Error> {
+        self.handle.flush()
     }
 }

@@ -16,7 +16,7 @@ fn main() {
 
     let mut data = [0 as u8; 2048]; // mtu=1500 by default
 
-    'l: while match tun.handle.read(&mut data) {
+    'l: while match tun.read(&mut data) {
         Ok(size) => {
             println!("size: {}", size);
             // #[cfg(target_os = "macos")]
@@ -27,6 +27,7 @@ fn main() {
                 println!("data: {:x?}", data[..size].bytes());
                 continue 'l;
             }
+            // println!("data: {:x?}", data[..size].bytes());
             let mut srcip = [0 as u8; 4];
             let mut dstip = [0 as u8; 4];
             dstip.copy_from_slice(&data[12..16]);
@@ -38,13 +39,15 @@ fn main() {
 
             data[20] = 0; // icmp echo
 
-            let mut csum = ((data[22] as u16) << 8) | data[23] as u16;
+            let mut csum = (data[22] as u16) | (data[23] as u16) << 8;
+            // println!("csum before: {:x?}", csum);
             csum += 8;
+            // println!("csum after: {:x?}", csum);
 
-            data[22] = (csum >> 8) as u8;
-            data[23] = (csum & 0xF) as u8;
+            data[22] = (csum & 0xFF) as u8;
+            data[23] = (csum >> 8 & 0xFF) as u8;
 
-            tun.handle.write(&data[0..size]).unwrap();
+            tun.write(&data[0..size]).unwrap();
             true
         }
         Err(err) => {

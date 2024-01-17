@@ -5,6 +5,8 @@ use std::fs;
 #[cfg(target_os = "linux")]
 use std::io;
 #[cfg(target_os = "linux")]
+use std::io::{Read, Write};
+#[cfg(target_os = "linux")]
 use std::os::fd::AsRawFd;
 
 #[cfg(target_os = "linux")]
@@ -52,4 +54,20 @@ pub fn alloc_tun() -> Result<Tun, io::Error> {
         ifname: String::from_utf8(req.ifr_name[..size].to_vec()).unwrap(),
     };
     Ok(tun)
+}
+
+#[cfg(target_os = "linux")]
+impl Read for Tun {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
+        self.handle.read(buf)
+    }
+}
+#[cfg(target_os = "linux")]
+impl Write for Tun {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, std::io::Error> {
+        self.handle.write(buf)
+    }
+    fn flush(&mut self) -> Result<(), std::io::Error> {
+        self.handle.flush()
+    }
 }
