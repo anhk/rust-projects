@@ -1,3 +1,4 @@
+// Refer: https://cloud.tencent.com/developer/article/1669569
 use tonic::{transport::Server, Request, Response, Status};
 
 use hello_world::greeter_server::{Greeter, GreeterServer};
