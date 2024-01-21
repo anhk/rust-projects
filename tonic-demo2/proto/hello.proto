@@ -1,0 +1,11 @@
+syntax = "proto3";
+package helloworld;
+
+service Greeter {
+    rpc SayHello (stream Message) returns (stream Message);
+}
+
+message Message {
+   string name = 1;
+}
+
