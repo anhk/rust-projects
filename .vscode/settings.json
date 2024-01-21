@@ -1,5 +1,0 @@
-{
-    "rust-analyzer.linkedProjects": [
-        "./tonic-demo2/Cargo.toml"
-    ]
-}
