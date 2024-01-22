@@ -51,18 +51,6 @@ enum IntF {
     B,
 }
 
-fn alloc_intf(isA: bool) -> IntF {
-    if isA {
-        &A {
-            a: String::from("A"),
-        }
-    } else {
-        &B {
-            b: String::from("B"),
-        }
-    }
-}
-
 fn main() {
     let list = vec![3, 4, 2, 3, 2];
     println!("largest: {}", largest(&list));
