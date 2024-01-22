@@ -2,17 +2,19 @@ pub mod helloworld {
     tonic::include_proto!("helloworld");
 }
 
-use crate::helloworld::greeter_server::Greeter;
+use std::net::ToSocketAddrs;
+
+use crate::helloworld::greeter_server::{Greeter, GreeterServer};
 use helloworld::Message;
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
-use tonic::{Request, Response, Status, Streaming};
+use tonic::{transport::Server, Request, Response, Status, Streaming};
 
 #[derive(Debug)]
-struct MyGreeter {}
+struct MyGreetServer {}
 
 #[tonic::async_trait]
-impl Greeter for MyGreeter {
+impl Greeter for MyGreetServer {
     type SayHelloStream = ReceiverStream<Result<Message, Status>>;
 
     async fn say_hello(
@@ -36,6 +38,14 @@ impl Greeter for MyGreeter {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    let server = MyGreetServer {};
+    Server::builder()
+        .add_service(GreeterServer::new(server))
+        .serve("[::1]:50051".to_socket_addrs().unwrap().next().unwrap())
+        .await
+        .unwrap();
+
     println!("Hello, world!");
 }
