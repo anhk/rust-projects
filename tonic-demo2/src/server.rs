@@ -27,8 +27,14 @@ impl Greeter for MyGreetServer {
         tokio::spawn(async move {
             while let Some(msg) = in_stream.next().await {
                 match msg {
-                    Ok(v) => tx.send(Ok(v)).await.expect(""),
-                    Err(e) => tx.send(Err(e)).await.expect(""),
+                    Ok(v) => match tx.send(Ok(v)).await {
+                        Ok(_) => (),
+                        Err(_e) => break,
+                    },
+                    Err(e) => match tx.send(Err(e)).await {
+                        Ok(_) => (),
+                        Err(_e) => break,
+                    },
                 }
             }
         });
