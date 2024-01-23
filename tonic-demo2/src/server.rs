@@ -30,18 +30,9 @@ impl Greeter for MyGreetServer {
                 match msg {
                     Ok(v) => {
                         println!("receive: {}", v.name);
-                        match tx.send(Ok(v)).await {
-                            Ok(_) => (),
-                            Err(_e) => break,
-                        }
+                        tx.send(Ok(v)).await.unwrap_or_default();
                     }
-                    Err(e) => {
-                        println!("receive error: {}", e);
-                        match tx.send(Err(e)).await {
-                            Ok(_) => (),
-                            Err(_e) => break,
-                        }
-                    }
+                    Err(_e) => break,
                 }
             }
         });
