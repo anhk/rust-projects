@@ -28,22 +28,23 @@ async fn main() {
 
     _ = tx
         .send(Message {
-            name: "sss".to_string(),
+            name: "aaa".to_string(),
         })
         .await;
 
-    while let Some(msg) = response.next() {
-        println!("=====");
-        let mut stream = msg.into_inner();
+    let mut stream = response.next().unwrap().into_inner();
+    // while let Some(msg) = response.next() {
+    println!("=====");
+    // let mut stream = msg.into_inner();
 
-        while let Some(msg) = stream.message().await.unwrap() {
-            println!("{:?}", msg.name);
-        }
-        // while let Some(msg) = stream.message().await {
-        //     println!("{:?}", msg);
-        // }
-        // println!("{:?}", stream.message());
+    while let Some(msg) = stream.message().await.unwrap() {
+        println!("{:?}", msg.name);
     }
+    // while let Some(msg) = stream.message().await {
+    //     println!("{:?}", msg);
+    // }
+    // println!("{:?}", stream.message());
+    // }
     println!("pause");
     thread::park();
 

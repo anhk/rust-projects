@@ -21,6 +21,7 @@ impl Greeter for MyGreetServer {
         &self,
         request: Request<Streaming<Message>>,
     ) -> Result<Response<Self::SayHelloStream>, Status> {
+        println!("=====");
         let mut in_stream = request.into_inner();
         let (tx, rx) = mpsc::channel(4);
 
