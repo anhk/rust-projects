@@ -25,8 +25,8 @@ async fn run(args: Argument) -> io::Result<()> {
     let o2e = tokio::spawn(async move { io::copy(&mut oread, &mut ewrite).await });
 
     select! {
-        _ = e2o => println!("c2s done"),
-        _ = o2e => println!("s2c done"),
+        val = e2o => println!("c2s done with {:?}", val),
+        val = o2e => println!("s2c done with {:?}", val),
     }
     Ok(())
 }
